@@ -1,0 +1,29 @@
+###Before this step please terminate the instance which is using the security group####
+
+
+###Delete your security group:###
+
+aws ec2 delete-security-group --group-id sg-01180c5c5f5e5f47e
+
+
+###Delete your subnets:###
+
+aws ec2 delete-subnet --subnet-id  subnet-0f7a06afdba91d01d
+
+aws ec2 delete-subnet --subnet-id subnet-0ec1627f5f62ae74e
+
+###Delete your custom route table:###
+
+aws ec2 delete-route-table --route-table-id rtb-040f187195beb8511
+
+###Detach your internet gateway from your VPC:###
+
+aws ec2 detach-internet-gateway --internet-gateway-id igw-0db795865df3816b4 --vpc-id vpc-070aa2775f0e96e58
+
+####Delete your internet gateway:###
+
+aws ec2 delete-internet-gateway --internet-gateway-id igw-0db795865df3816b4
+
+####Delete your VPC:####
+
+aws ec2 delete-vpc --vpc-id vpc-070aa2775f0e96e58

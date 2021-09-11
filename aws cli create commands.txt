@@ -1,0 +1,81 @@
+##You will create the following AWS resources:
+
+##A VPC##
+
+##Two subnets###
+
+##An internet gateway###
+
+##A route table###
+
+##An EC2 instance###
+
+###Create a VPC with a 10.0.0.0/16 CIDR block using the following###
+
+aws ec2 create-vpc --cidr-block 10.0.0.0/16 --query Vpc.VpcId --output text
+vpc-070aa2775f0e96e58
+
+####Using the VPC ID from the previous step, create a subnet with a 10.0.1.0/24 CIDR block using the following####
+
+aws ec2 create-subnet --vpc-id vpc-070aa2775f0e96e58 --cidr-block 10.0.1.0/24
+
+####Create a second subnet in your VPC with a 10.0.0.0/24 CIDR block#####
+
+aws ec2 create-subnet --vpc-id vpc-070aa2775f0e96e58 --cidr-block 10.0.0.0/24
+
+#####To make your subnet a public subnet. Create an internet gateway using the following####
+
+aws ec2 create-internet-gateway --query InternetGateway.InternetGatewayId --output text
+igw-0db795865df3816b4
+
+#####Using the ID from the previous step, attach the internet gateway to your VPC using the following####
+
+aws ec2 attach-internet-gateway --vpc-id vpc-070aa2775f0e96e58 --internet-gateway-id igw-0db795865df3816b4
+
+######Create a custom route table for your VPC using the following######
+aws ec2 create-route-table --vpc-id vpc-070aa2775f0e96e58 --query RouteTable.RouteTableId --output text
+
+rtb-040f187195beb8511
+
+######Create a route in the route table that points all traffic (0.0.0.0/0) to the internet gateway using the following#####
+
+aws ec2 create-route --route-table-id rtb-040f187195beb8511 --destination-cidr-block 0.0.0.0/0 --gateway-id igw-0db795865df3816b4
+
+
+######You can choose which subnet to associate with the custom route table, for example, subnet-0f7a06afdba91d01d, and associate it using the associate-route-table command. This subnet is your public subnet.######
+
+aws ec2 associate-route-table  --subnet-id subnet-0f7a06afdba91d01d --route-table-id rtb-040f187195beb8511
+
+###### You can modify the public IP addressing behavior of your subnet so that an instance launched into the subnet automatically receives a public IP address using the following modify-subnet-attribute command.#####
+
+aws ec2 modify-subnet-attribute --subnet-id subnet-0f7a06afdba91d01d --map-public-ip-on-launch
+
+
+####Create a key pair and use the --query option and the --output text option to pipe your private key directly into a file with the .pem extension.####
+
+aws ec2 create-key-pair --key-name MyKeyPair --query "KeyMaterial" --output text > MyKeyPair.pem
+
+
+####Create a security group in your VPC using the create-security-group command.####
+
+aws ec2 create-security-group --group-name SSHAccess --description "Security group for SSH access" --vpc-id vpc-070aa2775f0e96e58
+
+sg-01180c5c5f5e5f47e
+
+#####Add a rule that allows SSH access from anywhere using the authorize-security-group-ingress command.####
+
+aws ec2 authorize-security-group-ingress --group-id sg-01180c5c5f5e5f47e --protocol tcp --port 22 --cidr 0.0.0.0/0
+
+
+#####Launch an instance into your public subnet, using the security group and key pair you've created. In the output, take note of the instance ID for your instance.#######
+
+aws ec2 run-instances --image-id ami-0747bdcabd34c712a --count 1 --instance-type t2.micro --key-name hacksk --security-group-ids sg-01180c5c5f5e5f47e --subnet-id subnet-0f7a06afdba91d01d
+
+
+
+
+
+
+
+
+
