@@ -1,10 +1,13 @@
 from boto3 import Session
+import subprocess
 import os
 import sys
 import pprint
 
 from read_infra import readEC2
-import write_infra
+from write_infra import createEC2
+
+TEMPLATE_PATH="./templates"
 
 INPUT="input"
 TARGET="target"
@@ -73,3 +76,4 @@ if __name__ == "__main__":
     for instance in ec2_instances:
         pp.pprint(instance)
         print("=================================================")
+
