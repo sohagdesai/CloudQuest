@@ -1,11 +1,11 @@
 import boto3
 
-def read_ec2(creds):
+def read_keypair(creds):
     client = boto3.client(
-        'ec2',
+        'keypair',
         aws_access_key_id=creds.access_key,
         aws_secret_access_key=creds.secret_key,
         region_name = creds.region
     )
-    response = client.describe_instances()
+    response = client.describe_keypair()
     return response
