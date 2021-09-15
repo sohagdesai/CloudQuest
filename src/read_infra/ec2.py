@@ -3,6 +3,7 @@ import boto3
 class EC2:
     groups = []
     instances = []
+    instance_types = []
     images = []
     description = {}
     num_reservations = 0
@@ -18,6 +19,8 @@ class EC2:
             self.num_instances += len(self.reservations[idx]['Instances'])
             for idx2 in range(len(self.reservations[idx]['Instances'])):
                 self.images.append(self.reservations[idx]['Instances'][idx2]['ImageId'])
+        for instance in self.instances:
+            self.instance_types.append(instance[0]["InstanceType"])
 
 def get_ec2_instances(creds):
     client = boto3.client(

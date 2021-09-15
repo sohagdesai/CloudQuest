@@ -15,9 +15,9 @@ class Credential:
         self.secret_key = secret_key
 
 
-def get_credentials():
-    profile = input("Enter profile name of AWS deployment: ")
-    region = input("Enter region of AWS deployment: ")
+def get_credentials(profile_type):
+    profile = input("Enter profile name of " + profile_type + " AWS deployment: ")
+    region = input("Enter region of " + profile_type + " AWS deployment: ")
     os.environ['AWS_DEFAULT_REGION'] = region
 
     creds = Credential(profile, region)
