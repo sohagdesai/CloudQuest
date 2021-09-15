@@ -8,13 +8,13 @@ The approach taken is the following:
     - profile of the existing deployment to be reverse engineered
     - profile of the new deployment
    
-   These profile consists of:
+   These profiles consists of:
    
    - access key
    - secret key
    - region
    
-2. Based on the profile of the existing deployment the program uses the Python `boto3` SDK to read the following low-level AWS entities and store them into in-memory data structures: 
+2. Based on the profile of the existing deployment, the program uses the Python `boto3` SDK to read the following low-level AWS entities and store them into in-memory data structures: 
 	- EC2 instances
 	- VPCs
 	- KeyPairs
@@ -22,76 +22,86 @@ The approach taken is the following:
 	- Subnets 
 	- Routing Tables
 	- Routes
-	- AMIs used
-	- Security Groups
+	- Images used
+	- Security Groups used
 	
-3. It then extracts parameters from the information it reads from Step 2, and script templates implementing AWS CLI commands stored in the `script_templates` directory, to construct scripts that recreate the deployment using the profile of the new deployment.
+3. It then extracts parameters from the information it reads from Step 2, and modifies script templates implementing AWS CLI commands stored in the `write_infra/scriptTemplates` file, to construct output scripts that recreate the deployment using the profile of the new (target) deployment.
 
 4. The order in which the AWS entities have to be created is critical. The following order has to be used:
-   1. For each VPC identified in step 2, VPC is created based on the associated CIDR block.  
+   1. For each VPC identified in step 2, a VPC is created based on the associated CIDR block.  
 
-   2. Using the VPC IDs from the previous step, a subnet is created for each CIDR block 
+   2. Using the VPC IDs from the previous step, a subnet is created for each CIDR block. 
 
    3. Internet Gateways are created.
 
-   4. Using the ID from the previous step, the internet gateways are attached to the VPCs. 
+   4. Using the IDs from the previous step, the internet gateways are attached to the VPCs. 
 
-   5. A custom route table is created for each VPC
+   5. A custom route table is created for each VPC.
 
    6. A route in the route table that points all traffic (0.0.0.0/0) to the internet gateway is created.
 
    7. Custom route tables are created and associated.
 
-   8. A key pair is created.
+   8. A key pair is created with the same name as the key pair in the source deployment.
 
-   9. A security group is created in each VPC
+   9. Security groups are created per VPC.
 
    10. Rules are added to each security group. 
    
-   11. AMI is copied into the region for the new deplyment.
+   11. Images for each EC2 instance are copied into the region for the new deployment.
     
    12. EC2 instances are then launched into the subnet, using: 
        - security group created
-       - key pair created. 
-       - AMI copied
+       - key pair created
+       - image copied
 
        
    _Note_: The `--query` option is used for each command whose output is a dependency for the following command. 
    
 # Structure
 The following is the directory structure:
+`$ ls -R README.md docs/ json/ output_scripts/ script_templates/ src/`
 
-`README.md      cloudQuest.py`
+`README.md`
 
-`docs/:
-AWS_CLI_Create_Commands.txt  AWS_CLI_Delete_Commands.txt`
+`docs/:`
+`AWS_CLI_Create_Commands.txt`
+`AWS_CLI_Delete_Commands.txt`
 
-`json/:
-DescribeInternetGateway.json  DescribeRouteTables.json      DescribeSubnets.json
+`json/:`
+`DescribeInternetGateway.json  DescribeRouteTables.json      DescribeSubnets.json
 DescribeNACLS.json            DescribeSecurityGroup.json    DescribeVPC.json`
 
 `output_scripts/:
-recreateDeployment.bash
-`
-
-`read_infra/:
-__init__.py           readAMI.py            readGateway.py        readRoute.py          readSecurityGroup.py  readVPC.py
-readEC2.py            readKeyPair.py        readRouteTable.py     readSubnet.py
-`
+create_target.bash`
 
 `script_templates/:
-attachInternetGateway.bash     createEC2.bash                 createRoute.bash               createSecurityGroupRules.bash
-attachRouteTable.bash          createInternetGateway.bash     createRouteTable.bash          createVPC.bash
-copyAMI.bash                   createKeyPair.bash             createSecurityGroup.bash       modifySubnetAttribute.bash`
+attachInternetGateway.bash     createInternetGateway.bash     createSecurityGroup.bash       modifySubnetAttribute.bash
+attachRouteTable.bash          createKeyPair.bash             createSecurityGroupRules.bash
+copyImage.bash                 createRoute.bash               createSubnet.bash
+createEC2.bash                 createRouteTable.bash          createVPC.bash
+`
+`src/:
+main.py      read_infra/  tests/       utils/       write_infra/
+`
+`src/read_infra:
+__init__.py       ec2.py            image.py          route.py          securityGroup.py  vpc.py
+     gateway.py        keyPair.py        routeTable.py     subnet.py`
 
-`write_infra/:
-__init__.py   attachInternetGateway.py     createEC2.py                createRoute.py               createSecurityGroupRules.py
-attachRouteTable.py          createInternetGateway.py     createRouteTable.py          createVPC.py
-copyAMI.py                   createKeyPair.py             createSecurityGroup.py       modifySubnetAttribute.py`
+`src/tests:
+__init__.py    readTests.py   writeTests.py
+`
+`src/utils:
+__init__.py      credential.py
+`
+
+`src/write_infra:
+__init__.py                createScripts.py    scriptTemplates.py`
+
 
 
 # Running the Program
-1. Run: `python3 cloudQuest`
+1. Run: `python3 main.py`
    - provide the input profile, the input region, target profile, target region
 
-2. Run: `output_scripts/recreateDeployment.bash`
+2. Run: `output_scripts/create_target.bash`
