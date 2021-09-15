@@ -1,6 +1,13 @@
 import boto3
+from . import ec2
 
-def read_ec2(creds):
+class Image:
+    images = []
+    def __init__(self, images):
+        self.images = images
+
+
+def get_images(creds):
     client = boto3.client(
         'ec2',
         aws_access_key_id=creds.access_key,
@@ -8,4 +15,6 @@ def read_ec2(creds):
         region_name = creds.region
     )
     response = client.describe_instances()
-    return response
+    ec2_instances = ec2.EC2(response)
+    images = Image(ec2_instances.images)
+    return images
